@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Task Manager - A browser-based task management utility with offline storage">
+    <title>Task Manager</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+            <div class="spinner"></div>
+            <span>Loading...</span>
+        </div>
+
+        <header class="app-header">
+            <div class="header-brand">
+                <h1>📋 Task Manager</h1>
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="🔍 Search tasks..." autocomplete="off">
+                </div>
+            </div>
+            <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme" title="Toggle light/dark mode">🌙</button>
+        </header>
+
+        <div class="main-content">
+            <aside class="sidebar">
+                <div class="filter-section">
+                    <h3>📊 Filter by Status</h3>
+                    <button class="filter-btn active" data-filter="all">All Tasks</button>
+                    <button class="filter-btn" data-filter="pending">⏳ Pending</button>
+                    <button class="filter-btn" data-filter="in-progress">🔄 In Progress</button>
+                    <button class="filter-btn" data-filter="done">✅ Done</button>
+                    <button class="filter-btn" data-filter="cancelled">🚫 Cancelled</button>
+                </div>
+
+                <div class="filter-section">
+                    <h3>🎯 Filter by Priority</h3>
+                    <button class="filter-btn" data-priority="critical">🔴 Critical</button>
+                    <button class="filter-btn" data-priority="high">🟠 High</button>
+                    <button class="filter-btn" data-priority="medium">🟡 Medium</button>
+                    <button class="filter-btn" data-priority="low">🟢 Low</button>
+                </div>
+
+                <div class="filter-section" id="categoryFilterSection" style="display: none;">
+                    <h3>📁 Filter by Category</h3>
+                    <div id="categoryFilterButtons"></div>
+                </div>
+
+                <div class="filter-section" id="tagFilterSection" style="display: none;">
+                    <h3>🏷️ Filter by Tag</h3>
+                    <div id="tagFilterButtons"></div>
+                </div>
+
+                <div class="filter-section">
+                    <h3>📅 Filter by Date Range</h3>
+                    <div class="date-range-filter">
+                        <div class="form-group">
+                            <label for="dateFrom">From</label>
+                            <input type="date" id="dateFrom" class="date-filter-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="dateTo">To</label>
+                            <input type="date" id="dateTo" class="date-filter-input">
+                        </div>
+                        <button class="filter-btn" id="clearDateFilter">Clear Dates</button>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <button class="filter-btn" id="manageCategoriesBtn">⚙️ Manage Categories</button>
+                </div>
+
+                <div class="storage-info">
+                    <h3>💾 Storage</h3>
+                    <p class="storage-type">Auto-detecting...</p>
+                    <p class="storage-help">Tasks are stored locally in your browser using IndexedDB or localStorage.</p>
+                </div>
+            </aside>
+
+            <main class="task-area">
+                <div class="task-form-section">
+                    <h2 class="task-form-toggle" id="taskFormToggle">
+                        <span class="toggle-icon">+</span> Add New Task
+                    </h2>
+                    <form id="taskForm" class="task-form-body" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group title-group">
+                                <label for="taskTitle">Task Title *</label>
+                                <input type="text" id="taskTitle" placeholder="Enter task title..." required maxlength="200">
+                            </div>
+                            <div class="form-group priority-group">
+                                <label for="taskPriority">Priority</label>
+                                <select id="taskPriority">
+                                    <option value="medium">Medium</option>
+                                    <option value="critical">Critical</option>
+                                    <option value="high">High</option>
+                                    <option value="low">Low</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="taskDueDate">Due Date</label>
+                                <input type="date" id="taskDueDate">
+                            </div>
+                            <div class="form-group">
+                                <label for="taskTags">Tags (comma-separated)</label>
+                                <input type="text" id="taskTags" placeholder="e.g., work, urgent, project-a">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="taskCategory">Category</label>
+                                <select id="taskCategory">
+                                    <option value="">-- No Category --</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="taskParent">Parent Task (Dependency)</label>
+                                <select id="taskParent">
+                                    <option value="">-- None --</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="taskRecurring"> Recurring Task
+                                </label>
+                            </div>
+                            <div class="form-group recurrence-fields" style="display: none;">
+                                <label for="taskRecurrenceFrequency">Repeat</label>
+                                <select id="taskRecurrenceFrequency">
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                    <option value="yearly">Yearly</option>
+                                </select>
+                                <label for="taskRecurrenceInterval">Every</label>
+                                <input type="number" id="taskRecurrenceInterval" min="1" value="1" style="width: 60px;">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="taskDescription">Description</label>
+                            <textarea id="taskDescription" placeholder="Add task details (optional)..." maxlength="2000"></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="add-task-btn">Add Task</button>
+                            <button type="reset" class="reset-btn">Clear</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="task-stats">
+                    <span id="totalTasks">Total: 0</span>
+                    <span id="pendingTasks">Pending: 0</span>
+                    <span id="inProgressTasks">In Progress: 0</span>
+                    <span id="completedTasks">Done: 0</span>
+                    <span id="overdueCount">Overdue: 0</span>
+                    <span id="completionRate">Completion: 0%</span>
+                </div>
+
+                <div class="sort-controls">
+                    <label for="sortBy">Sort by:</label>
+                    <select id="sortBy">
+                        <option value="default">Default (Status / Priority / Date)</option>
+                        <option value="title">Title (A–Z)</option>
+                        <option value="priority">Priority (High to Low)</option>
+                        <option value="dueDate">Due Date (Soonest)</option>
+                        <option value="createdAt">Created (Newest)</option>
+                        <option value="status">Status</option>
+                        <option value="category">Category</option>
+                    </select>
+                </div>
+
+                <div class="task-list-section">
+                    <h2>📝 Your Tasks</h2>
+                    <ul id="taskList" class="task-list">
+                        <!-- Tasks will be rendered here -->
+                    </ul>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>✏️ Edit Task</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <form id="editForm">
+                <input type="hidden" id="editTaskId">
+                <div class="form-group">
+                    <label for="editTitle">Title *</label>
+                    <input type="text" id="editTitle" required maxlength="200">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editPriority">Priority</label>
+                        <select id="editPriority">
+                            <option value="critical">Critical</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editStatus">Status</label>
+                        <select id="editStatus">
+                            <option value="pending">Pending</option>
+                            <option value="in-progress">In Progress</option>
+                            <option value="done">Done</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editDueDate">Due Date</label>
+                        <input type="date" id="editDueDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="editTags">Tags (comma-separated)</label>
+                        <input type="text" id="editTags" placeholder="e.g., work, urgent, project-a">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editCategory">Category</label>
+                        <select id="editCategory">
+                            <option value="">-- No Category --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editParent">Parent Task (Dependency)</label>
+                        <select id="editParent">
+                            <option value="">-- None --</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="editRecurring"> Recurring Task
+                        </label>
+                    </div>
+                    <div class="form-group edit-recurrence-fields" style="display: none;">
+                        <label for="editRecurrenceFrequency">Repeat</label>
+                        <select id="editRecurrenceFrequency">
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                        <label for="editRecurrenceInterval">Every</label>
+                        <input type="number" id="editRecurrenceInterval" min="1" value="1" style="width: 60px;">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editDescription">Description</label>
+                    <textarea id="editDescription" maxlength="2000"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="save-btn">💾 Save Changes</button>
+                    <button type="button" class="cancel-btn close-modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Category Management Modal -->
+    <div id="categoryModal" class="modal">
+        <div class="modal-content modal-content--narrow">
+            <div class="modal-header">
+                <h2>📁 Manage Categories</h2>
+                <span class="close-category-modal">&times;</span>
+            </div>
+            <div class="category-modal-body">
+                <ul id="categoryList" class="category-list"></ul>
+                <div class="category-add-form">
+                    <input type="text" id="newCategoryName" placeholder="New category name..." maxlength="50" autocomplete="off">
+                    <input type="color" id="newCategoryColor" value="#3b82f6" title="Pick a color">
+                    <button class="add-task-btn" id="addCategoryBtn">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TypeScript entry point via Vite -->
+    <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
