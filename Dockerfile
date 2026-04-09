@@ -1,2 +1,2 @@
 FROM nginx:latest
-COPY dist/ /usr/share/nginx/html/
+COPY task-manager/dist/ /usr/share/nginx/html/
