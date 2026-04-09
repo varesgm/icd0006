@@ -1,2 +1,3 @@
 FROM nginx:latest
-COPY task-manager/dist/ /usr/share/nginx/html/
+COPY task-manager/ /usr/share/nginx/html/task-manager/
+COPY index.html /usr/share/nginx/html/index.html
