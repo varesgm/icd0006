@@ -5,4 +5,4 @@ deploy_vue:
   tags:
     - shared
   script:
-    - docker compose -p vue-to-do up --build --remove-orphans --detach
+    - cd vue-to-do && docker compose -p vue-to-do up --build --remove-orphans --detach

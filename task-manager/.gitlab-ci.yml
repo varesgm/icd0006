@@ -5,4 +5,4 @@ deploy_ts:
   tags:
     - shared
   script:
-    - docker compose -p task-manager up --build --remove-orphans --detach
+    - cd task-manager && docker compose -p task-manager up --build --remove-orphans --detach
