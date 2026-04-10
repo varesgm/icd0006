@@ -1,0 +1,8 @@
+deploy_vue:
+  stage: deploy_vue
+  only:
+    - main
+  tags:
+    - shared
+  script:
+    - docker compose -p vue-to-do up --build --remove-orphans --detach

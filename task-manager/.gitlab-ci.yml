@@ -1,0 +1,8 @@
+deploy_ts:
+  stage: deploy_ts
+  only:
+    - main
+  tags:
+    - shared
+  script:
+    - docker compose -p task-manager up --build --remove-orphans --detach

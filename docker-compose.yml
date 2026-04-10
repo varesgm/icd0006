@@ -1,7 +1,0 @@
-services:
-  web:
-    build: .
-    restart: unless-stopped
-    container_name: ts-task-manager
-    ports:
-      - "81:80"

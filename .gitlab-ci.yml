@@ -1,11 +1,7 @@
 stages:
-  - deploy
+  - deploy_ts
+  - deploy_vue
 
-deploy:
-  stage: deploy
-  only:
-    - main
-  tags:
-    - shared
-  script:
-    - docker compose -p grvare-js up --build --remove-orphans --detach
+include:
+  - local: "/task-manager/.gitlab-ci.yml"
+  - local: "/vue-to-do/.gitlab-ci.yml"

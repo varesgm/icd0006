@@ -1,0 +1,7 @@
+services:
+  web:
+    build: .
+    restart: unless-stopped
+    container_name: vue-to-do
+    ports:
+      - "82:80"
