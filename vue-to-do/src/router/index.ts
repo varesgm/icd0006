@@ -1,48 +1,60 @@
-import LoginView from '@/views/LoginView.vue';
-import MainView from '@/views/MainView.vue';
-import AboutView from '@/views/AboutView.vue';
-import NotFoundView from '@/views/NotFoundView.vue';
+import LoginView from '@/views/LoginView.vue'
+import RegisterView from '@/views/RegisterView.vue'
+import MainView from '@/views/MainView.vue'
+import AboutView from '@/views/AboutView.vue'
+import NotFoundView from '@/views/NotFoundView.vue'
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
-import { useApiKeyStore } from '@/stores/apikey-store';
+import { useAuthStore } from '@/stores/auth-store'
 
 const routes: RouteRecordRaw[] = [
-  {
+  { 
     path: '/',
     name: 'Main',
-    component: MainView
+    component: MainView,
+    meta: { requiresAuth: true }
   },
-  {
+  { 
     path: '/login',
     name: 'Login',
-    component: LoginView
+    component: LoginView,
+    meta: { requiresAuth: false }
   },
-  {
+  { 
+    path: '/register',
+    name: 'Register',
+    component: RegisterView,
+    meta: { requiresAuth: false }
+  },
+  { 
     path: '/about',
     name: 'About',
-    component: AboutView
-  }, 
-    {
-    // Catchall — matches any unmatched path
-    path: "/:pathMatch(.*)*",
-    name: "NotFound",
-    component: NotFoundView
+    component: AboutView,
+    meta: { requiresAuth: true }
+  },
+  { 
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: NotFoundView,
+    meta: { requiresAuth: false }
   },
 ]
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes: routes,
+  routes,
 })
 
-router.beforeEach((to, from) => {
-  const apiKeyStore = useApiKeyStore();
+router.beforeEach((to, _from) => {
+  const authStore = useAuthStore()
+  const loggedIn = authStore.isLoggedIn
 
-  // List of routes that require authentication
-  const nonProtectedRoutes = ["Login"];
-
-  if (!nonProtectedRoutes.includes(to.name as string) && !apiKeyStore.isLoggedIn()) {
-    return { name: "Login" };
+  if (to.meta.requiresAuth && !loggedIn) {
+    return { name: 'Login', query: { redirect: to.fullPath } }
   }
-});
+
+  if ((to.name === 'Login' || to.name === 'Register') && loggedIn) {
+    return { name: 'Main' }
+  }
+})
 
 export default router
