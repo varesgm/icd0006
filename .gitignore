@@ -14,6 +14,7 @@ vite.config.ts.timestamp-*
 .env
 .env.*
 !.env.example
+!.env.production
 
 # ── Logs ─────────────────────────────────────────────────────
 logs/

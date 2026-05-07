@@ -6,7 +6,7 @@
 
 - Assignment 3 (A3) Task Manager deployment to VPS (https://grvare-taskmanager.proxy.itcollege.ee/)
 
-- Assignment 4 (A4) Vue To-Do App (in progress)
+- Assignment 4 (A4) Vue To-Do App (https://grvare-vue-to-do.proxy.itcollege.ee/)
 
 ## Personal Information
 
