@@ -1,8 +1,10 @@
 # TodoVue
 
-A Vue 3 task manager app built against the [TalTech backend](https://taltech.akaver.com).
+A Vue 3 task manager app built (originally) against the [TalTech backend](https://taltech.akaver.com).
 
-**Live app:** https://grvare-vue-to-do.proxy.itcollege.ee/
+**Live app (against https://taltech.akaver.com/):** https://grvare-vue-to-do.proxy.itcollege.ee/
+
+**Live app (against https://grvare-express-js.proxy.itcollege.ee/):** https://grvare-vue-express.proxy.itcollege.ee/
 
 ---
 
@@ -10,11 +12,12 @@ A Vue 3 task manager app built against the [TalTech backend](https://taltech.aka
 
 - Register and log in with email and password
 - JWT-based authentication with automatic token refresh
-- Create, complete, archive, and delete tasks
+- Create, complete, reopen, archive, restore, and delete tasks
 - Assign due dates, categories, and priorities to tasks
 - Manage categories and priorities in dedicated tabs
 - Overdue task highlighting
 - Persistent login across page reloads
+- SPA fallback in nginx for direct navigation to Vue Router routes
 
 ---
 
@@ -28,7 +31,7 @@ A Vue 3 task manager app built against the [TalTech backend](https://taltech.aka
 | Routing | Vue Router with navigation guards |
 | Styling | Bootstrap 5 + custom yellow/black theme |
 | Build | Vite |
-| Backend | https://taltech.akaver.com (JWT REST API) |
+| Backend | https://taltech.akaver.com by default, configurable with `VITE_API_BASE_URL` |
 
 ---
 
@@ -47,11 +50,13 @@ npm install
 
 ### Configure environment
 
-The `.env` file is already included with the correct backend URL:
+The `.env` file is already included with the default backend URL:
 
 ```env
 VITE_API_BASE_URL=https://taltech.akaver.com
 ```
+
+Only `VITE_API_BASE_URL` is used by the app. To point the app at another backend, change that value before starting the dev server or building for production.
 
 ### Run in development
 
@@ -76,6 +81,7 @@ Output goes to `dist/`.
 | `npm run dev` | Start dev server with HMR |
 | `npm run build` | Type-check and build for production |
 | `npm run preview` | Preview the production build locally |
+| `npm run test:unit` | Run unit tests with Vitest |
 | `npm run lint` | Lint and auto-fix with ESLint + oxlint |
 | `npm run format` | Format source files with Prettier |
 
@@ -83,7 +89,7 @@ Output goes to `dist/`.
 
 ## Docker
 
-The app is served via nginx inside a Docker container. The Dockerfile uses a multi-stage build — Node builds the app, nginx serves the output.
+The app is served via nginx inside a Docker container. The Dockerfile uses a multi-stage build: Node builds the Vite app, nginx serves the output, and `nginx.conf` falls back to `index.html` for Vue Router paths.
 
 Build and run:
 
@@ -91,7 +97,12 @@ Build and run:
 docker compose up --build -d
 ```
 
-App will be available at `http://localhost:82`.
+The compose file defines two deployments:
+
+| Service | Backend | Local URL |
+|---|---|---|
+| `web` | `https://taltech.akaver.com` | http://localhost:82 |
+| `web-grvare` | `https://grvare-express-js.proxy.itcollege.ee` | http://localhost:89 |
 
 To stop:
 
@@ -99,7 +110,13 @@ To stop:
 docker compose down
 ```
 
-> `VITE_API_BASE_URL` is baked into the JS bundle at build time by Vite. No environment variables need to be set on the server.
+> `VITE_API_BASE_URL` is baked into the JS bundle at build time by Vite. Runtime server environment variables do not change the already-built frontend bundle.
+
+The VPS deployment uses GitLab CI from `main`:
+
+```sh
+docker compose -p vue-to-do up --build --remove-orphans --detach
+```
 
 ---
 
@@ -151,7 +168,7 @@ Routes are defined in `src/router/index.ts` using Vue Router with eager loading.
 
 - If `requiresAuth: true` and the user is not logged in → redirect to `/login`, preserving the intended destination as `?redirect=...`
 - If navigating to `/login` or `/register` while already logged in → redirect to `/`
-- `/404` and auth routes are always accessible regardless of login state
+- The catch-all 404 route and auth routes are always accessible regardless of login state
 
 | Route | Auth required | Description |
 |---|---|---|
@@ -159,7 +176,7 @@ Routes are defined in `src/router/index.ts` using Vue Router with eager loading.
 | `/login` | No | Login form |
 | `/register` | No | Registration form |
 | `/about` | Yes | About page |
-| `/:pathMatch(.*)` | No | 404 catch-all |
+| `/:pathMatch(.*)*` | No | 404 catch-all |
 
 ---
 
