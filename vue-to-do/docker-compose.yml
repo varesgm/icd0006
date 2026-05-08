@@ -5,3 +5,12 @@ services:
     container_name: vue-to-do
     ports:
       - "82:80"
+  web-grvare:
+    build:
+      context: .
+      args:
+        VITE_API_BASE_URL: https://grvare-express-js.proxy.itcollege.ee
+    restart: unless-stopped
+    container_name: vue-to-do-grvare
+    ports:
+      - "89:80"
